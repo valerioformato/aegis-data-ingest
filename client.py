@@ -29,6 +29,12 @@ BASE_URL = "https://temporeale.regione.lazio.it"
 TOKEN_URL = f"{BASE_URL}/datascapeA/connect/token"
 API_BASE = f"{BASE_URL}/datascapeA"
 
+_INVALID_SENTINEL_VALUES = {
+    -2147483648,  # INT_MIN
+    -2147483647,  # -INT_MAX
+    2147483647,   # INT_MAX
+}
+
 # Public read-only credentials (hardcoded in the AEGIS web app itself)
 _USERNAME = "AegisPubblico"
 _PASSWORD = "AegisPubblico"
@@ -40,6 +46,16 @@ CATEGORIES = [
     "rain24Hours", "rain48Hours", "rain120Hours",
     "level", "airTemperature", "atmosphericPressure", "wind", "snowLevel",
 ]
+
+
+def _normalize_time_series_value(value: Any) -> Any:
+    if value in _INVALID_SENTINEL_VALUES:
+        return None
+    return value
+
+
+def _normalize_time_series_rows(rows: list[list[Any]]) -> list[list[Any]]:
+    return [[epoch_ms, _normalize_time_series_value(value)] for epoch_ms, value in rows]
 
 
 class AegisClient:
@@ -156,7 +172,10 @@ class AegisClient:
             "loadAlsoExtemp": "true",
             "ui_culture": "en",
         }
-        return self._get(f"/v3/data-combo/{element_id}", params)
+        raw = self._get(f"/v3/data-combo/{element_id}", params)
+        raw["plausibleData"] = _normalize_time_series_rows(raw.get("plausibleData", []))
+        raw["extempData"] = _normalize_time_series_rows(raw.get("extempData", []))
+        return raw
 
     def get_time_series_df(
         self,
