@@ -1,0 +1,10 @@
+# Local config with real credentials — never commit this
+my-config.toml
+
+# Runtime state file (tracks last-fetched timestamp per element)
+.ingest_state.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo

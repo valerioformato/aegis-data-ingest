@@ -1,0 +1,34 @@
+# AEGIS → InfluxDB ingest configuration
+# Copy this file, fill in your values, and point ingest.py at it with --config.
+
+[influxdb]
+url    = "http://localhost:8086"   # InfluxDB 2.x base URL
+token  = "YOUR_INFLUXDB_TOKEN"     # All-access or write-scoped token
+org    = "your-org"                # Organisation name or ID
+bucket = "aegis"                   # Destination bucket
+
+[ingest]
+# How far back to look on the very first run (no saved state yet), in hours.
+initial_lookback_hours = 24
+
+# Safety overlap window: re-fetch this many minutes before the last known
+# timestamp to catch any measurements that arrived late.  InfluxDB writes
+# are idempotent at the same timestamp, so duplicates are harmless.
+overlap_minutes = 30
+
+# ── Elements to collect ────────────────────────────────────────────────────
+# Each [[ingest.elements]] block defines one AEGIS element ID.
+# Run  python explore.py --category level  (or --category all) to find IDs.
+
+[[ingest.elements]]
+id      = 49320
+label   = "Tevere a Foro Italico – Surface Velocity"   # free-form, for logs
+
+[[ingest.elements]]
+id      = 49322
+label   = "Tevere a Foro Italico – Water Level"
+
+# Add more blocks as needed, e.g.:
+# [[ingest.elements]]
+# id    = 12788
+# label = "Aniene a Lunghezza – Water Level"
